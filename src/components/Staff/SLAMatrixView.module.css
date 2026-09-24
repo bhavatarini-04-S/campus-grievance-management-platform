@@ -1,0 +1,90 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.header p {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin-top: 4px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.card {
+  height: 100%;
+}
+
+.cardTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.p {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 8px 10px;
+  background-color: var(--color-background);
+  color: var(--color-muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.mutedText {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.factorList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.factorItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: var(--color-background);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.825rem;
+  color: var(--color-text);
+}
+
+.factorTag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}

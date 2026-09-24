@@ -8,7 +8,17 @@ export function Sidebar({ isOpen, onClose, links, className = '' }) {
       <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''} ${className}`}>
         <nav className={styles.nav}>
           {links.map((link, idx) => (
-            <a key={idx} href={link.href} className={`${styles.link} ${link.active ? styles.active : ''}`}>
+            <a 
+              key={idx} 
+              href={link.href || '#'} 
+              className={`${styles.link} ${link.active ? styles.active : ''}`}
+              onClick={(e) => {
+                if (link.onClick) {
+                  link.onClick(e);
+                  if (onClose) onClose();
+                }
+              }}
+            >
               <span className={styles.icon}>{link.icon}</span>
               <span className={styles.label}>{link.label}</span>
             </a>
