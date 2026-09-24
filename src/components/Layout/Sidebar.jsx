@@ -1,13 +1,14 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 
 export function Sidebar({ isOpen, onClose, links, onNavigate, className = '' }) {
   const handleLinkClick = (e, link) => {
-    e.preventDefault();
     if (onNavigate) {
+      e.preventDefault();
       onNavigate(link.href);
     }
-    onClose();
+    if (onClose) onClose();
   };
 
   return (
@@ -16,15 +17,15 @@ export function Sidebar({ isOpen, onClose, links, onNavigate, className = '' }) 
       <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''} ${className}`}>
         <nav className={styles.nav}>
           {links.map((link, idx) => (
-            <a 
+            <Link 
               key={idx} 
-              href={link.href} 
+              to={link.href || '#'} 
               className={`${styles.link} ${link.active ? styles.active : ''}`}
               onClick={(e) => handleLinkClick(e, link)}
             >
               <span className={styles.icon}>{link.icon}</span>
               <span className={styles.label}>{link.label}</span>
-            </a>
+            </Link>
           ))}
         </nav>
       </aside>

@@ -1,63 +1,70 @@
-import React, { useState } from 'react'
-import { DashboardLayout } from './components/Layout/DashboardLayout'
-import { PageHeader } from './components/Layout/PageHeader'
-import { Button } from './components/Base/Button'
-import { StatCard } from './components/Base/StatCard'
-import { ComplaintCard } from './components/CampusFix/ComplaintCard'
-import { ComplaintTimeline } from './components/CampusFix/ComplaintTimeline'
-import { StatusBadge } from './components/CampusFix/StatusBadge'
-import { PriorityBadge } from './components/CampusFix/PriorityBadge'
-import { Toast, ToastContainer } from './components/Base/Toast'
-import AIDemoPage from './pages/AIDemoPage'
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { DashboardLayout } from './components/Layout/DashboardLayout';
+import { PageHeader } from './components/Layout/PageHeader';
+import { Button } from './components/Base/Button';
+import { StatCard } from './components/Base/StatCard';
+import { ComplaintCard } from './components/CampusFix/ComplaintCard';
+import { ComplaintTimeline } from './components/CampusFix/ComplaintTimeline';
+import { StatusBadge } from './components/CampusFix/StatusBadge';
+import { PriorityBadge } from './components/CampusFix/PriorityBadge';
+import { Toast, ToastContainer } from './components/Base/Toast';
+import AIDemoPage from './pages/AIDemoPage';
+import { AuthProvider } from './contexts/AuthContext';
 
-const SIDEBAR_LINKS = [
-  { label: 'Dashboard', href: '#', icon: '📊', active: true },
-  { label: 'AI Demo', href: '#ai-demo', icon: '🤖' },
-  { label: 'Complaints', href: '#', icon: '📝' },
-  { label: 'Settings', href: '#', icon: '⚙️' }
+import { StudentDashboard } from './pages/Student/Dashboard';
+import { SubmitComplaint } from './pages/Student/SubmitComplaint';
+import { MyComplaints } from './pages/Student/MyComplaints';
+import { ComplaintDetail } from './pages/Student/ComplaintDetail';
+
+const ADMIN_SIDEBAR_LINKS = [
+  { label: 'Dashboard', href: '/admin', icon: '📊' },
+  { label: 'AI Demo', href: '/admin/ai-demo', icon: '🤖' },
+  { label: 'Complaints', href: '/admin/complaints', icon: '📝' },
+  { label: 'Settings', href: '/admin/settings', icon: '⚙️' }
 ];
 
-const DEMO_COMPLAINT = {
-  id: 'CMP-2023-001',
-  title: 'Wi-Fi not working in Library 2nd Floor',
-  category: 'IT Services',
-  location: 'Central Library',
-  impact: 'High (Multiple students affected)',
-  priority: 'HIGH',
-  status: 'IN_PROGRESS',
-  slaDeadline: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString() // 3 hours from now
-};
-
-const DEMO_EVENTS = [
-  { title: 'Complaint Received', timestamp: new Date(Date.now() - 5000000).toISOString(), author: 'Student A' },
-  { title: 'Acknowledged', timestamp: new Date(Date.now() - 4000000).toISOString(), author: 'Staff B' },
-  { title: 'In Progress', timestamp: new Date(Date.now() - 2000000).toISOString(), author: 'IT Team', description: 'Technician dispatched to the location.' }
-];
-
-function App() {
-  const [showToast, setShowToast] = useState(false);
-  const [currentPage, setCurrentPage] = useState('dashboard');
-
-  const handleNavigation = (href) => {
-    if (href === '#ai-demo') {
-      setCurrentPage('ai-demo');
-    } else {
-      setCurrentPage('dashboard');
-    }
-  };
-
-  const updatedSidebarLinks = SIDEBAR_LINKS.map(link => ({
+function AdminLayout({ children }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  const updatedSidebarLinks = ADMIN_SIDEBAR_LINKS.map(link => ({
     ...link,
-    active: (link.href === '#ai-demo' && currentPage === 'ai-demo') || 
-           (link.href === '#' && currentPage === 'dashboard')
+    active: location.pathname === link.href || (location.pathname.startsWith(link.href) && link.href !== '/admin'),
+    onClick: (e) => {
+      e.preventDefault();
+      navigate(link.href);
+    }
   }));
+  
+  return (
+    <DashboardLayout sidebarLinks={updatedSidebarLinks} onNavigate={(href) => navigate(href)}>
+      {children}
+    </DashboardLayout>
+  );
+}
 
-  if (currentPage === 'ai-demo') {
-    return <AIDemoPage onNavigate={handleNavigation} />;
-  }
+function LegacyAdminDashboard() {
+  const [showToast, setShowToast] = useState(false);
+  const DEMO_COMPLAINT = {
+    id: 'CMP-2023-001',
+    status: 'IN_PROGRESS',
+    title: 'Wi-Fi completely down in North Campus Library',
+    category: 'IT Infrastructure',
+    location: 'North Campus Library - All Floors',
+    impact: 'High',
+    priority: 'HIGH',
+    slaDeadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString(),
+    support_count: 42
+  };
+  const DEMO_EVENTS = [
+    { title: 'Complaint Filed', timestamp: '2023-10-24 09:00 AM', author: 'John D.' },
+    { title: 'Acknowledged', timestamp: '2023-10-24 09:15 AM', author: 'IT Support Team' },
+    { title: 'In Progress', timestamp: '2023-10-24 10:30 AM', author: 'Mike T. (Network Admin)' }
+  ];
 
   return (
-    <DashboardLayout sidebarLinks={updatedSidebarLinks} onNavigate={handleNavigation}>
+    <>
       <PageHeader 
         title="Dashboard Overview" 
         description="Welcome to CampusFix AI Foundation Demo"
@@ -112,8 +119,67 @@ function App() {
           <Toast message="Action completed successfully!" type="success" onClose={() => setShowToast(false)} />
         </ToastContainer>
       )}
+    </>
+  );
+}
+
+function StudentLayout({ children }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const links = [
+    { label: 'Dashboard', href: '/student', icon: '📊' },
+    { label: 'My Complaints', href: '/student/complaints', icon: '📝' },
+    { label: 'Submit Complaint', href: '/student/complaints/new', icon: '➕' }
+  ].map(link => ({
+    ...link,
+    active: location.pathname === link.href || (location.pathname.startsWith('/student/complaints') && link.href === '/student/complaints' && location.pathname !== '/student/complaints/new'),
+    onClick: (e) => {
+      e.preventDefault();
+      navigate(link.href);
+    }
+  }));
+
+  links[2].active = location.pathname === '/student/complaints/new';
+
+  return (
+    <DashboardLayout sidebarLinks={links} onNavigate={(href) => navigate(href)}>
+      {children}
     </DashboardLayout>
   );
 }
 
-export default App
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/student" replace />} />
+          
+          <Route path="/admin/*" element={
+            <AdminLayout>
+              <Routes>
+                <Route path="/" element={<LegacyAdminDashboard />} />
+                <Route path="ai-demo" element={<AIDemoPage />} />
+                <Route path="*" element={<LegacyAdminDashboard />} />
+              </Routes>
+            </AdminLayout>
+          } />
+
+          <Route path="/student/*" element={
+            <StudentLayout>
+              <Routes>
+                <Route path="/" element={<StudentDashboard />} />
+                <Route path="complaints" element={<MyComplaints />} />
+                <Route path="complaints/new" element={<SubmitComplaint />} />
+                <Route path="complaints/:id" element={<ComplaintDetail />} />
+              </Routes>
+            </StudentLayout>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+export default App;

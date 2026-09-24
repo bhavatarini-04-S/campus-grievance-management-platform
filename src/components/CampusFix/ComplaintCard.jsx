@@ -56,7 +56,9 @@ export function ComplaintCard({ complaint, onActionClick, onSupport, onRemoveSup
             onRemoveUpvote={onRemoveSupport}
           />
         )}
-        {complaint.slaDeadline && <SLATimer deadline={complaint.slaDeadline} />}
+        {(complaint.sla_deadline || complaint.slaDeadline) && (
+          <SLATimer deadline={complaint.sla_deadline || complaint.slaDeadline} />
+        )}
         <Button variant="outline" onClick={() => onActionClick && onActionClick(complaint)}>
           View Details
         </Button>
