@@ -39,7 +39,7 @@ export function ComplaintCard({ complaint, onActionClick, className = '' }) {
       </CardBody>
 
       <CardFooter className={styles.footer}>
-        <SLATimer deadline={complaint.slaDeadline} />
+        <SLATimer deadline={complaint.sla_deadline || complaint.slaDeadline} />
         <Button variant="outline" onClick={() => onActionClick && onActionClick(complaint)}>
           View Details
         </Button>
