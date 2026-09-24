@@ -2,21 +2,28 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-sm);
   font: var(--font-caption);
   font-weight: 600;
   border: 1px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .icon {
-  font-size: 1rem;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.text {
+  letter-spacing: 0.02em;
 }
 
 .normal {
-  background-color: var(--color-background);
-  color: var(--color-muted);
-  border-color: var(--color-border);
+  background-color: #EFF6FF;
+  color: #1D4ED8;
+  border-color: #BFDBFE;
 }
 
 .warning {
@@ -29,4 +36,20 @@
   background-color: #FEE2E2;
   color: #991B1B;
   border-color: #FECACA;
+  animation: pulseBreached 2.5s infinite ease-in-out;
+}
+
+.resolved {
+  background-color: #DCFCE7;
+  color: #166534;
+  border-color: #BBF7D0;
+}
+
+@keyframes pulseBreached {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15);
+  }
 }

@@ -33,13 +33,21 @@ export function ComplaintCard({ complaint, onActionClick, className = '' }) {
           </div>
           <div className={styles.metaItem}>
             <span className={styles.label}>Priority:</span>
-            <PriorityBadge priority={complaint.priority} />
+            <PriorityBadge 
+              priority={complaint.priority} 
+              score={complaint.priorityScore} 
+              showScore={true} 
+            />
           </div>
         </div>
       </CardBody>
 
       <CardFooter className={styles.footer}>
-        <SLATimer deadline={complaint.slaDeadline} />
+        <SLATimer 
+          deadline={complaint.slaDeadline} 
+          status={complaint.status} 
+          resolvedAt={complaint.resolution?.resolvedAt} 
+        />
         <Button variant="outline" onClick={() => onActionClick && onActionClick(complaint)}>
           View Details
         </Button>

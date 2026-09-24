@@ -1,44 +1,62 @@
 import React, { useEffect, useState } from 'react';
+import { formatSLACountdown, getSLAState, SLA_STATES } from '../../services/slaConfig';
 import styles from './SLATimer.module.css';
 
-export function SLATimer({ deadline, className = '' }) {
-  const [timeLeft, setTimeLeft] = useState('');
-  const [status, setStatus] = useState('normal'); // normal, warning, breached
+/**
+ * Reusable SLATimer component displaying real-time countdown / overdue state.
+ * @param {Object} props
+ * @param {string|Date} props.deadline - ISO timestamp of SLA target
+ * @param {string} [props.status] - Complaint status (e.g. RECEIVED, IN_PROGRESS, RESOLVED)
+ * @param {string|Date} [props.resolvedAt] - Resolution timestamp if resolved
+ * @param {string} [props.className] - Optional extra class
+ * @param {boolean} [props.showIcon] - Whether to show the status icon
+ */
+export function SLATimer({ 
+  deadline, 
+  status = 'RECEIVED', 
+  resolvedAt = null, 
+  className = '',
+  showIcon = true 
+}) {
+  const [displayText, setDisplayText] = useState(() => formatSLACountdown(deadline, status, resolvedAt));
+  const [slaState, setSlaState] = useState(() => getSLAState(deadline, status, resolvedAt));
 
   useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date().getTime();
-      const end = new Date(deadline).getTime();
-      const distance = end - now;
-
-      if (distance < 0) {
-        setTimeLeft('SLA breached');
-        setStatus('breached');
-        return;
-      }
-
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-
-      if (hours < 2) {
-        setStatus('warning');
-        if (hours === 0 && minutes < 30) setTimeLeft('SLA approaching');
-        else setTimeLeft(`${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m remaining`);
-      } else {
-        setStatus('normal');
-        setTimeLeft(`${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m remaining`);
-      }
+    const update = () => {
+      setDisplayText(formatSLACountdown(deadline, status, resolvedAt));
+      setSlaState(getSLAState(deadline, status, resolvedAt));
     };
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 60000);
+    update();
+    // Update every 10 seconds for real-time fidelity
+    const interval = setInterval(update, 10000);
     return () => clearInterval(interval);
-  }, [deadline]);
+  }, [deadline, status, resolvedAt]);
+
+  let statusClass = styles.normal;
+  let icon = '⏱';
+
+  if (slaState === SLA_STATES.RESOLVED) {
+    statusClass = styles.resolved;
+    icon = '✓';
+  } else if (slaState === SLA_STATES.SLA_BREACHED) {
+    statusClass = styles.breached;
+    icon = '🚨';
+  } else if (slaState === SLA_STATES.AT_RISK) {
+    statusClass = styles.warning;
+    icon = '⚠️';
+  }
+
+  const tooltip = deadline ? `SLA Deadline: ${new Date(deadline).toLocaleString()}` : '';
 
   return (
-    <div className={`${styles.timer} ${styles[status]} ${className}`}>
-      <span className={styles.icon}>⏱</span>
-      <span>{timeLeft}</span>
+    <div 
+      className={`${styles.timer} ${statusClass} ${className}`} 
+      title={tooltip}
+      data-testid="sla-timer"
+    >
+      {showIcon && <span className={styles.icon}>{icon}</span>}
+      <span className={styles.text}>{displayText}</span>
     </div>
   );
 }

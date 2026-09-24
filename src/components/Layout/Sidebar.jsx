@@ -9,14 +9,22 @@ export function Sidebar({ isOpen, onClose, links, className = '' }) {
       <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''} ${className}`}>
         <nav className={styles.nav}>
           {links.map((link, idx) => {
-            const LinkComponent = link.href.startsWith('http') ? 'a' : Link;
+            const isExternal = link.href && link.href.startsWith('http');
+            const useAnchor = isExternal || !link.href || link.href === '#';
+            const LinkComponent = useAnchor ? 'a' : Link;
+
             return (
               <LinkComponent
                 key={idx}
-                to={!link.href.startsWith('http') ? link.href : undefined}
-                href={link.href.startsWith('http') ? link.href : undefined}
+                to={!useAnchor ? link.href : undefined}
+                href={useAnchor ? (link.href || '#') : undefined}
                 className={`${styles.link} ${link.active ? styles.active : ''}`}
-                onClick={onClose}
+                onClick={(e) => {
+                  if (link.onClick) {
+                    link.onClick(e);
+                  }
+                  if (onClose) onClose();
+                }}
               >
                 <span className={styles.icon}>{link.icon}</span>
                 <span className={styles.label}>{link.label}</span>

@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './Navbar.module.css';
 
-export function Navbar({ onMenuClick, title = "CampusFix AI", className = '' }) {
+export function Navbar({ onMenuClick, title = "CampusFix AI", actions, className = '' }) {
   return (
     <header className={`${styles.navbar} ${className}`}>
       <div className={styles.left}>
@@ -11,9 +11,13 @@ export function Navbar({ onMenuClick, title = "CampusFix AI", className = '' }) 
         <h1 className={styles.brand}>{title}</h1>
       </div>
       <div className={styles.right}>
-        <button className={styles.profileBtn}>
-          <div className={styles.avatar}>U</div>
-        </button>
+        {actions ? (
+          actions
+        ) : (
+          <button className={styles.profileBtn}>
+            <div className={styles.avatar}>U</div>
+          </button>
+        )}
       </div>
     </header>
   );
