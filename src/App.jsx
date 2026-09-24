@@ -1,96 +1,78 @@
-import React, { useState } from 'react'
+import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { DashboardLayout } from './components/Layout/DashboardLayout'
-import { PageHeader } from './components/Layout/PageHeader'
-import { Button } from './components/Base/Button'
-import { StatCard } from './components/Base/StatCard'
-import { ComplaintCard } from './components/CampusFix/ComplaintCard'
-import { ComplaintTimeline } from './components/CampusFix/ComplaintTimeline'
-import { StatusBadge } from './components/CampusFix/StatusBadge'
-import { PriorityBadge } from './components/CampusFix/PriorityBadge'
-import { Toast, ToastContainer } from './components/Base/Toast'
+import { ToastContainer } from './components/Base/Toast'
 
-const SIDEBAR_LINKS = [
-  { label: 'Dashboard', href: '#', icon: '📊', active: true },
-  { label: 'Complaints', href: '#', icon: '📝' },
-  { label: 'Settings', href: '#', icon: '⚙️' }
+// Staff Pages
+import { StaffDashboard } from './pages/Staff/Dashboard'
+import { StaffComplaintDetail } from './pages/Staff/ComplaintDetail'
+
+const STAFF_SIDEBAR_LINKS = [
+  { label: 'Dashboard', href: '/staff', icon: '📊' },
+  { label: 'Complaints', href: '/staff/complaints', icon: '📝' },
+  { label: 'SLA / At Risk', href: '/staff/sla', icon: '⚠️' },
+  { label: 'Escalations', href: '/staff/escalations', icon: '🚨' }
 ];
 
-const DEMO_COMPLAINT = {
-  id: 'CMP-2023-001',
-  title: 'Wi-Fi not working in Library 2nd Floor',
-  category: 'IT Services',
-  location: 'Central Library',
-  impact: 'High (Multiple students affected)',
-  priority: 'HIGH',
-  status: 'IN_PROGRESS',
-  slaDeadline: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString() // 3 hours from now
-};
+function StaffLayout() {
+  const { user } = useAuth();
 
-const DEMO_EVENTS = [
-  { title: 'Complaint Received', timestamp: new Date(Date.now() - 5000000).toISOString(), author: 'Student A' },
-  { title: 'Acknowledged', timestamp: new Date(Date.now() - 4000000).toISOString(), author: 'Staff B' },
-  { title: 'In Progress', timestamp: new Date(Date.now() - 2000000).toISOString(), author: 'IT Team', description: 'Technician dispatched to the location.' }
-];
-
-function App() {
-  const [showToast, setShowToast] = useState(false);
+  // Lightweight mock role guard
+  if (!user || !['STAFF', 'SUPERVISOR', 'ADMIN', 'GRIEVANCE_OFFICER'].includes(user.role)) {
+    return <div style={{padding: '2rem'}}>Access Denied. Staff role required.</div>;
+  }
 
   return (
-    <DashboardLayout sidebarLinks={SIDEBAR_LINKS}>
-      <PageHeader 
-        title="Dashboard Overview" 
-        description="Welcome to CampusFix AI Foundation Demo"
-        actions={
-          <div className="flex gap-sm">
-            <Button variant="outline">Export Report</Button>
-            <Button variant="primary" onClick={() => setShowToast(true)}>New Action</Button>
-          </div>
-        }
-      />
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
-        <StatCard title="Total Complaints" value="1,248" trend={5} icon="📋" />
-        <StatCard title="Resolved" value="982" trend={12} icon="✅" />
-        <StatCard title="SLA Breached" value="14" trend={-2} icon="⚠️" />
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 'var(--spacing-lg)' }}>
-        <div>
-          <h3 className="section-title" style={{ marginBottom: 'var(--spacing-md)' }}>Recent Complaints</h3>
-          <ComplaintCard complaint={DEMO_COMPLAINT} />
-        </div>
-        <div>
-          <h3 className="section-title" style={{ marginBottom: 'var(--spacing-md)' }}>Timeline Demo</h3>
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: 'var(--spacing-lg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-            <ComplaintTimeline events={DEMO_EVENTS} />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ marginTop: 'var(--spacing-xl)' }}>
-        <h3 className="section-title" style={{ marginBottom: 'var(--spacing-md)' }}>Badge System</h3>
-        <div className="flex gap-md" style={{ flexWrap: 'wrap', marginBottom: 'var(--spacing-md)' }}>
-          <StatusBadge status="RECEIVED" />
-          <StatusBadge status="ACKNOWLEDGED" />
-          <StatusBadge status="IN_PROGRESS" />
-          <StatusBadge status="RESOLVED" />
-          <StatusBadge status="SLA_BREACHED" />
-        </div>
-        <div className="flex gap-md" style={{ flexWrap: 'wrap' }}>
-          <PriorityBadge priority="LOW" />
-          <PriorityBadge priority="MEDIUM" />
-          <PriorityBadge priority="HIGH" />
-          <PriorityBadge priority="CRITICAL" />
-        </div>
-      </div>
-
-      {showToast && (
-        <ToastContainer>
-          <Toast message="Action completed successfully!" type="success" onClose={() => setShowToast(false)} />
-        </ToastContainer>
-      )}
+    <DashboardLayout sidebarLinks={STAFF_SIDEBAR_LINKS}>
+      <Outlet />
+      <ToastContainer />
     </DashboardLayout>
-  )
+  );
+}
+
+// Fallback layout for future Student/Admin routes that aren't implemented in this branch yet
+function FallbackLayout({ title, links }) {
+  return (
+    <DashboardLayout sidebarLinks={links || []}>
+      <div style={{padding: '2rem'}}>
+        <h2>{title} Placeholder</h2>
+        <p>This route is reserved for a future merge.</p>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/staff" replace />} />
+
+      {/* Staff & SLA Routes */}
+      <Route path="/staff" element={<StaffLayout />}>
+        <Route index element={<StaffDashboard />} />
+        <Route path="complaints" element={<StaffDashboard />} />
+        <Route path="complaints/:id" element={<StaffComplaintDetail />} />
+        <Route path="sla" element={<div style={{padding: '2rem'}}><h2>SLA Dashboard</h2><p>Coming soon</p></div>} />
+        <Route path="escalations" element={<div style={{padding: '2rem'}}><h2>Escalations</h2><p>Coming soon</p></div>} />
+      </Route>
+
+      {/* Reserved Routes for Future Merges (Student, Admin, AI) */}
+      <Route path="/student/*" element={<FallbackLayout title="Student Experience" />} />
+      <Route path="/admin/*" element={<FallbackLayout title="Admin Analytics" />} />
+      <Route path="/admin/ai-demo" element={<FallbackLayout title="AI Duplicate Detection Demo" />} />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
 export default App
