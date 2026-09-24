@@ -7,6 +7,9 @@ import { ComplaintQueueTable } from './ComplaintQueueTable';
 import { ComplaintDetailModal } from './ComplaintDetailModal';
 import { ResolutionModal } from './ResolutionModal';
 import { ComplaintCard } from '../CampusFix/ComplaintCard';
+import { LoadingState } from '../Base/LoadingState';
+import { ErrorState } from '../Base/ErrorState';
+import { EmptyState } from '../Base/EmptyState';
 import { COMPLAINT_STATUS } from '../../services/workflowEngine';
 import { SLA_STATES, getSLAState } from '../../services/slaConfig';
 import { STAFF_ROSTER } from '../../services/assignmentEngine';
@@ -15,6 +18,10 @@ import styles from './StaffDashboard.module.css';
 export function StaffDashboard() {
   const {
     complaints,
+    isLoading,
+    loading,
+    error,
+    refreshData,
     activeRole,
     currentUser,
     acknowledgeComplaint,
@@ -216,6 +223,37 @@ export function StaffDashboard() {
   const activeSelectedComplaint = selectedComplaint 
     ? complaints.find(c => c.id === selectedComplaint.id) || selectedComplaint 
     : null;
+
+  // Loading state
+  if (isLoading || loading) {
+    return <LoadingState message="Loading staff operations and complaint queue..." size="large" />;
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <ErrorState 
+        title="Failed to Load Dashboard Data" 
+        message={error} 
+        onRetry={refreshData} 
+      />
+    );
+  }
+
+  // Empty state when entire system has no complaints
+  if (!complaints || complaints.length === 0) {
+    return (
+      <EmptyState 
+        title="No Complaints in Queue" 
+        description="There are currently no complaints in the system. Use the '+ Test Priority Engine' action to submit a complaint."
+        action={
+          <Button variant="primary" onClick={() => setShowNewSimModal(true)}>
+            + Register Test Complaint
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div className={styles.dashboard}>

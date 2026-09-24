@@ -423,20 +423,42 @@ const INITIAL_COMPLAINTS = [
 ];
 
 export function ComplaintProvider({ children }) {
-  // Pre-calculate priority and SLA for all complaints initially
-  const [complaints, setComplaints] = useState(() => {
-    return INITIAL_COMPLAINTS.map(c => {
-      const priorityInfo = calculatePriority(c);
-      const slaDeadline = c.slaDeadline || calculateSLADeadline(c.createdAt, priorityInfo.priority);
-      return {
-        ...c,
-        priority: priorityInfo.priority,
-        priorityScore: priorityInfo.score,
-        priorityReasons: priorityInfo.reasons,
-        slaDeadline
-      };
-    });
-  });
+  const [complaints, setComplaints] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Conceptually standard async data initialization
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const processed = INITIAL_COMPLAINTS.map(c => {
+        const priorityInfo = calculatePriority(c);
+        const slaDeadline = c.slaDeadline || calculateSLADeadline(c.createdAt, priorityInfo.priority);
+        return {
+          ...c,
+          priority: priorityInfo.priority,
+          priorityScore: priorityInfo.score,
+          priorityReasons: priorityInfo.reasons,
+          slaDeadline
+        };
+      });
+      setComplaints(processed);
+    } catch (err) {
+      console.error('Complaint data initialization error:', err);
+      setError(err?.message || 'Failed to load complaint data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Initialize data on mount asynchronously
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadData]);
 
   // Current active role & user (defaults to STAFF Rajesh Kumar)
   const [activeRole, setActiveRole] = useState(ROLES.STAFF);
@@ -466,9 +488,10 @@ export function ComplaintProvider({ children }) {
 
   // Periodic SLA check to detect SLA breach and trigger escalation
   const checkSLABreaches = useCallback(() => {
+    const newNotifications = [];
+
     setComplaints(prev => {
       let changed = false;
-      const newNotifications = [];
 
       const updated = prev.map(c => {
         if (c.status === COMPLAINT_STATUS.RESOLVED) return c;
@@ -480,7 +503,7 @@ export function ComplaintProvider({ children }) {
           const auditEvent = createAuditEvent({
             action: 'ESCALATION_TRIGGERED',
             title: 'SLA Breached - Escalated to Supervisor',
-            description: escalationCheck.escalationUpdate.escalationDetails.reason,
+            description: escalationCheck.escalationUpdate?.escalationDetails?.reason || 'SLA deadline exceeded.',
             author: 'CampusFix SLA Daemon',
             role: 'SYSTEM'
           });
@@ -496,7 +519,7 @@ export function ComplaintProvider({ children }) {
           return {
             ...c,
             ...escalationCheck.escalationUpdate,
-            timeline: [...c.timeline, auditEvent]
+            timeline: [...(c.timeline || []), auditEvent]
           };
         }
 
@@ -511,12 +534,12 @@ export function ComplaintProvider({ children }) {
         return c;
       });
 
-      if (newNotifications.length > 0) {
-        setNotifications(curr => [...newNotifications, ...curr]);
-      }
-
       return changed ? updated : prev;
     });
+
+    if (newNotifications.length > 0) {
+      setNotifications(curr => [...newNotifications, ...curr]);
+    }
   }, []);
 
   // Check SLA on mount and periodically every 15 seconds
@@ -865,7 +888,16 @@ export function ComplaintProvider({ children }) {
   return (
     <ComplaintContext.Provider
       value={{
+        isLoading,
+        loading: isLoading,
+        error,
+        setIsLoading,
+        setLoading: setIsLoading,
+        setError,
+        refreshData: loadData,
+        reload: loadData,
         complaints,
+        setComplaints,
         activeRole,
         switchRole,
         currentUser,

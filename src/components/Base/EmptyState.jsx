@@ -9,7 +9,7 @@ export function EmptyState({
   className = '' 
 }) {
   return (
-    <div className={`${styles.container} ${className}`}>
+    <div className={`${styles.container} ${className}`} data-testid="empty-state">
       <div className={styles.icon}>{icon}</div>
       <h3 className={styles.title}>{title}</h3>
       {description && <p className={styles.description}>{description}</p>}

@@ -92,8 +92,13 @@ export function formatSLACountdown(slaDeadline, status, _resolvedAt = null) {
   if (diff < 0) {
     // Overdue
     const overdueMs = Math.abs(diff);
-    const hours = Math.floor(overdueMs / (1000 * 60 * 60));
-    const minutes = Math.floor((overdueMs % (1000 * 60 * 60)) / (1000 * 60));
+    let hours = Math.floor(overdueMs / (1000 * 60 * 60));
+    let minutes = Math.round((overdueMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (minutes === 60) {
+      hours += 1;
+      minutes = 0;
+    }
 
     if (hours === 0 && minutes === 0) {
       return 'Just overdue';
@@ -105,8 +110,13 @@ export function formatSLACountdown(slaDeadline, status, _resolvedAt = null) {
   }
 
   // Remaining
-  const remainingHours = Math.floor(diff / (1000 * 60 * 60));
-  const remainingMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  let remainingHours = Math.floor(diff / (1000 * 60 * 60));
+  let remainingMinutes = Math.round((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (remainingMinutes === 60) {
+    remainingHours += 1;
+    remainingMinutes = 0;
+  }
 
   if (remainingHours > 24) {
     const days = Math.floor(remainingHours / 24);

@@ -24,7 +24,16 @@ const SIDEBAR_ITEMS = [
 function MainContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [toastMessage, setToastMessage] = useState(null);
-  const { complaints, checkSLABreaches } = useComplaints();
+  const [previewState, setPreviewState] = useState('none'); // 'none' | 'loading' | 'empty' | 'error'
+
+  const { 
+    complaints, 
+    isLoading, 
+    loading, 
+    error, 
+    refreshData, 
+    checkSLABreaches 
+  } = useComplaints();
 
   const handleExportCSV = () => {
     const headers = ['ID', 'Title', 'Category', 'Location', 'Priority', 'Status', 'SLA Deadline', 'Escalation'];
@@ -50,9 +59,14 @@ function MainContent() {
     setToastMessage('Complaint queue exported successfully as CSV.');
   };
 
-  const handleCheckSLA = () => {
-    checkSLABreaches();
-    setToastMessage('SLA daemon scan completed: checked all active tickets against deadline clock.');
+  const handleRefresh = async () => {
+    if (refreshData) {
+      await refreshData();
+    }
+    if (checkSLABreaches) {
+      checkSLABreaches();
+    }
+    setToastMessage('CampusFix data and SLA deadlines re-synchronized successfully.');
   };
 
   const sidebarLinksWithActive = SIDEBAR_ITEMS.map(item => ({
@@ -64,6 +78,38 @@ function MainContent() {
       setActiveTab(item.id);
     }
   }));
+
+  // Global loading state: guaranteed to terminate via finally block in ComplaintProvider
+  if (isLoading || loading) {
+    return (
+      <DashboardLayout 
+        sidebarLinks={sidebarLinksWithActive}
+        navbarActions={<StaffNavbarControls />}
+      >
+        <div style={{ padding: 'var(--spacing-xl)', display: 'flex', justifyContent: 'center' }}>
+          <LoadingState message="Initializing CampusFix platform and loading complaints data..." size="large" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Global error state with retry
+  if (error) {
+    return (
+      <DashboardLayout 
+        sidebarLinks={sidebarLinksWithActive}
+        navbarActions={<StaffNavbarControls />}
+      >
+        <div style={{ padding: 'var(--spacing-xl)' }}>
+          <ErrorState 
+            title="Failed to Load Dashboard Data" 
+            message={error} 
+            onRetry={handleRefresh} 
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout 
@@ -87,18 +133,22 @@ function MainContent() {
         }
         actions={
           <div className="flex gap-sm" style={{ flexWrap: 'wrap' }}>
-            <Button variant="outline" onClick={handleCheckSLA}>
-              ⏱ Refresh SLA
+            <Button variant="outline" onClick={handleRefresh}>
+              🔄 Refresh Data
             </Button>
             <Button variant="primary" onClick={handleExportCSV}>
-              📥 Export Report
+              📥 Export CSV
             </Button>
           </div>
         }
       />
 
       {activeTab === 'dashboard' && <StaffDashboard />}
+
+      {/* Operations Reference */}
       {activeTab === 'sla' && <SLAMatrixView />}
+
+      {/* Design System Reference */}
       {activeTab === 'design' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
           {/* Badge System Showcase */}
@@ -130,16 +180,41 @@ function MainContent() {
             </CardBody>
           </Card>
 
-          {/* System State Components */}
+          {/* Interactive State Feedback Components Preview */}
           <Card>
             <CardHeader>
-              <h3 className="card-title">State Feedback Components</h3>
+              <h3 className="card-title">Interactive Lifecycle State Components</h3>
             </CardHeader>
             <CardBody>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-md)' }}>
-                <LoadingState message="Loading campus complaints..." size="small" />
-                <EmptyState title="Queue Empty" description="All assigned tasks are resolved." />
-                <ErrorState title="System Alert" message="Sample error boundary state." />
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-muted)', marginBottom: 'var(--spacing-md)' }}>
+                Test each foundational UI state component on demand:
+              </p>
+              <div className="flex gap-sm" style={{ marginBottom: 'var(--spacing-md)', flexWrap: 'wrap' }}>
+                <Button 
+                  variant={previewState === 'loading' ? 'primary' : 'outline'} 
+                  onClick={() => setPreviewState(previewState === 'loading' ? 'none' : 'loading')}
+                >
+                  Preview LoadingState
+                </Button>
+                <Button 
+                  variant={previewState === 'empty' ? 'primary' : 'outline'} 
+                  onClick={() => setPreviewState(previewState === 'empty' ? 'none' : 'empty')}
+                >
+                  Preview EmptyState
+                </Button>
+                <Button 
+                  variant={previewState === 'error' ? 'primary' : 'outline'} 
+                  onClick={() => setPreviewState(previewState === 'error' ? 'none' : 'error')}
+                >
+                  Preview ErrorState
+                </Button>
+              </div>
+
+              <div style={{ backgroundColor: 'var(--color-background)', padding: 'var(--spacing-lg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                {previewState === 'loading' && <LoadingState message="Sample loading state preview..." />}
+                {previewState === 'empty' && <EmptyState title="Sample Empty State" description="No records found in this view." />}
+                {previewState === 'error' && <ErrorState title="Sample Error State" message="An error occurred during request." onRetry={() => setPreviewState('none')} />}
+                {previewState === 'none' && <p style={{ fontSize: '0.85rem', color: 'var(--color-muted)', textAlign: 'center' }}>Click any button above to test that component.</p>}
               </div>
             </CardBody>
           </Card>

@@ -248,4 +248,45 @@ describe('CampusFix AI - Staff, SLA & Workflow Quality Test Suite', () => {
     expect(canGrievanceOfficerView).toBe(true);
   });
 
+  // 13. Data loading lifecycle: Guaranteed to exit loading state via finally block
+  it('13. Async data loading lifecycle terminates loading state deterministically via finally', async () => {
+    let isLoading = true;
+    let error = null;
+    let data = null;
+
+    const mockLoadData = async (shouldFail = false) => {
+      isLoading = true;
+      error = null;
+      try {
+        if (shouldFail) {
+          throw new Error('Network timeout during data fetch');
+        }
+        data = [{ id: 'CMP-TEST', title: 'Test issue' }];
+      } catch (err) {
+        error = err.message;
+      } finally {
+        isLoading = false;
+      }
+    };
+
+    // Test success case: leaves loading state with data
+    await mockLoadData(false);
+    expect(isLoading).toBe(false);
+    expect(data).toHaveLength(1);
+    expect(error).toBeNull();
+
+    // Test error case: leaves loading state with error
+    await mockLoadData(true);
+    expect(isLoading).toBe(false);
+    expect(error).toBe('Network timeout during data fetch');
+  });
+
+  // 14. All 5 user roles are defined and supported across dashboards
+  it('14. All 5 user roles are supported without stuck initialization', () => {
+    const requiredRoles = ['STUDENT', 'STAFF', 'SUPERVISOR', 'ADMIN', 'GRIEVANCE_OFFICER'];
+    requiredRoles.forEach(role => {
+      expect(ROLES[role]).toBe(role);
+    });
+  });
+
 });

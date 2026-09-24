@@ -9,7 +9,7 @@ export function ErrorState({
   className = '' 
 }) {
   return (
-    <div className={`${styles.container} ${className}`} role="alert">
+    <div className={`${styles.container} ${className}`} role="alert" data-testid="error-state">
       <div className={styles.icon}>⚠️</div>
       <h3 className={styles.title}>{title}</h3>
       <p className={styles.message}>{message}</p>
