@@ -14,18 +14,14 @@ function AdminSidebar() {
   const location = useLocation();
 
   const links = [
-    { label: 'Dashboard', href: '/', icon: '📊' },
-    { label: 'Analytics', href: '/analytics', icon: '📈' },
-    { label: 'Escalations', href: '/escalations', icon: '⬆️' },
-    { label: 'Sensitive', href: '/sensitive', icon: '🔒' },
-    { label: 'Audit Logs', href: '/audit', icon: '📝' },
+    { label: 'Dashboard', href: '/admin', icon: '📊' },
+    { label: 'Analytics', href: '/admin/analytics', icon: '📈' },
+    { label: 'Escalations', href: '/admin/escalations', icon: '⬆️' },
+    { label: 'Sensitive', href: '/admin/sensitive', icon: '🔒' },
+    { label: 'Audit Logs', href: '/admin/audit-logs', icon: '📝' },
   ].map(link => ({
     ...link,
     active: location.pathname === link.href,
-    onClick: (e) => {
-      e.preventDefault();
-      navigate(link.href);
-    }
   }));
 
   return <DashboardLayout sidebarLinks={links} />;
@@ -38,11 +34,11 @@ function AdminLayout({ children }) {
   const { user, setUser } = useAuth();
 
   const links = [
-    { label: 'Dashboard', href: '/', icon: '📊' },
-    { label: 'Analytics', href: '/analytics', icon: '📈' },
-    { label: 'Escalations', href: '/escalations', icon: '⬆️' },
-    { label: 'Sensitive', href: '/sensitive', icon: '🔒' },
-    { label: 'Audit Logs', href: '/audit', icon: '📝' },
+    { label: 'Dashboard', href: '/admin', icon: '📊' },
+    { label: 'Analytics', href: '/admin/analytics', icon: '📈' },
+    { label: 'Escalations', href: '/admin/escalations', icon: '⬆️' },
+    { label: 'Sensitive', href: '/admin/sensitive', icon: '🔒' },
+    { label: 'Audit Logs', href: '/admin/audit-logs', icon: '📝' },
   ].map(link => ({
     ...link,
     active: location.pathname === link.href,
@@ -64,8 +60,7 @@ function AdminLayout({ children }) {
           ]}
         />
       </div>
-      <DashboardLayout sidebarLinks={links.map(l => ({...l, href: undefined}))}>
-        {/* We need to hook into the sidebar links in DashboardLayout somehow, but since we can't easily modify the existing DashboardLayout to use Link without rewriting it, we'll modify Sidebar.jsx instead to support onClick or use window.location */}
+      <DashboardLayout sidebarLinks={links}>
         {children}
       </DashboardLayout>
     </div>
@@ -79,10 +74,11 @@ function App() {
         <AdminLayout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/escalations" element={<Escalations />} />
-            <Route path="/sensitive" element={<SensitiveComplaints />} />
-            <Route path="/audit" element={<AuditLogs />} />
+            <Route path="/admin" element={<Dashboard />} />
+            <Route path="/admin/analytics" element={<Analytics />} />
+            <Route path="/admin/escalations" element={<Escalations />} />
+            <Route path="/admin/sensitive" element={<SensitiveComplaints />} />
+            <Route path="/admin/audit-logs" element={<AuditLogs />} />
           </Routes>
         </AdminLayout>
       </BrowserRouter>
