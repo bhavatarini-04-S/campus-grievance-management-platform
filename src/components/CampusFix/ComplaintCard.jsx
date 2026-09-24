@@ -4,9 +4,11 @@ import { Button } from '../Base/Button';
 import { StatusBadge } from './StatusBadge';
 import { PriorityBadge } from './PriorityBadge';
 import { SLATimer } from './SLATimer';
+import { ImpactBadge } from './ImpactBadge';
+import { SupportButton } from './SupportButton';
 import styles from './ComplaintCard.module.css';
 
-export function ComplaintCard({ complaint, onActionClick, className = '' }) {
+export function ComplaintCard({ complaint, onActionClick, onSupport, onRemoveSupport, userId, showAI = false, className = '' }) {
   return (
     <Card className={className}>
       <CardHeader className={styles.header}>
@@ -27,10 +29,17 @@ export function ComplaintCard({ complaint, onActionClick, className = '' }) {
             <span className={styles.label}>Location:</span>
             <span>{complaint.location}</span>
           </div>
-          <div className={styles.metaItem}>
-            <span className={styles.label}>Impact:</span>
-            <span>{complaint.impact}</span>
-          </div>
+          {showAI && complaint.impact ? (
+            <div className={styles.metaItem}>
+              <span className={styles.label}>Impact:</span>
+              <ImpactBadge impact={complaint.impact} />
+            </div>
+          ) : (
+            <div className={styles.metaItem}>
+              <span className={styles.label}>Impact:</span>
+              <span>{complaint.impact}</span>
+            </div>
+          )}
           <div className={styles.metaItem}>
             <span className={styles.label}>Priority:</span>
             <PriorityBadge priority={complaint.priority} />
@@ -39,7 +48,15 @@ export function ComplaintCard({ complaint, onActionClick, className = '' }) {
       </CardBody>
 
       <CardFooter className={styles.footer}>
-        <SLATimer deadline={complaint.slaDeadline} />
+        {showAI && (
+          <SupportButton
+            complaint={complaint}
+            userId={userId}
+            onUpvote={onSupport}
+            onRemoveUpvote={onRemoveSupport}
+          />
+        )}
+        {complaint.slaDeadline && <SLATimer deadline={complaint.slaDeadline} />}
         <Button variant="outline" onClick={() => onActionClick && onActionClick(complaint)}>
           View Details
         </Button>

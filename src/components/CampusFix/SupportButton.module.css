@@ -1,0 +1,59 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: all 0.2s ease;
+}
+
+.button:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upvoted {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.text {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.animating {
+  animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.countBadge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  min-width: 24px;
+  text-align: center;
+}
