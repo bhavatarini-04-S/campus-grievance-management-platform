@@ -1,0 +1,50 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.id {
+  font: var(--font-caption);
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.title {
+  margin: 0;
+  font: var(--font-card-title);
+  color: var(--color-text);
+}
+
+.body {
+  padding-top: 0;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  font: var(--font-body);
+}
+
+.label {
+  font: var(--font-caption);
+  color: var(--color-muted);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
