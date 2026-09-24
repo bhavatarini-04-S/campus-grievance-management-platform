@@ -1,96 +1,93 @@
-import React, { useState } from 'react'
-import { DashboardLayout } from './components/Layout/DashboardLayout'
-import { PageHeader } from './components/Layout/PageHeader'
-import { Button } from './components/Base/Button'
-import { StatCard } from './components/Base/StatCard'
-import { ComplaintCard } from './components/CampusFix/ComplaintCard'
-import { ComplaintTimeline } from './components/CampusFix/ComplaintTimeline'
-import { StatusBadge } from './components/CampusFix/StatusBadge'
-import { PriorityBadge } from './components/CampusFix/PriorityBadge'
-import { Toast, ToastContainer } from './components/Base/Toast'
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DashboardLayout } from './components/Layout/DashboardLayout';
+import { Dashboard } from './pages/Admin/Dashboard';
+import { Analytics } from './pages/Admin/Analytics';
+import { Escalations } from './pages/Admin/Escalations';
+import { SensitiveComplaints } from './pages/Admin/SensitiveComplaints';
+import { AuditLogs } from './pages/Admin/AuditLogs';
+import { Select } from './components/Base/Forms';
 
-const SIDEBAR_LINKS = [
-  { label: 'Dashboard', href: '#', icon: '📊', active: true },
-  { label: 'Complaints', href: '#', icon: '📝' },
-  { label: 'Settings', href: '#', icon: '⚙️' }
-];
+function AdminSidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-const DEMO_COMPLAINT = {
-  id: 'CMP-2023-001',
-  title: 'Wi-Fi not working in Library 2nd Floor',
-  category: 'IT Services',
-  location: 'Central Library',
-  impact: 'High (Multiple students affected)',
-  priority: 'HIGH',
-  status: 'IN_PROGRESS',
-  slaDeadline: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString() // 3 hours from now
-};
+  const links = [
+    { label: 'Dashboard', href: '/', icon: '📊' },
+    { label: 'Analytics', href: '/analytics', icon: '📈' },
+    { label: 'Escalations', href: '/escalations', icon: '⬆️' },
+    { label: 'Sensitive', href: '/sensitive', icon: '🔒' },
+    { label: 'Audit Logs', href: '/audit', icon: '📝' },
+  ].map(link => ({
+    ...link,
+    active: location.pathname === link.href,
+    onClick: (e) => {
+      e.preventDefault();
+      navigate(link.href);
+    }
+  }));
 
-const DEMO_EVENTS = [
-  { title: 'Complaint Received', timestamp: new Date(Date.now() - 5000000).toISOString(), author: 'Student A' },
-  { title: 'Acknowledged', timestamp: new Date(Date.now() - 4000000).toISOString(), author: 'Staff B' },
-  { title: 'In Progress', timestamp: new Date(Date.now() - 2000000).toISOString(), author: 'IT Team', description: 'Technician dispatched to the location.' }
-];
-
-function App() {
-  const [showToast, setShowToast] = useState(false);
-
-  return (
-    <DashboardLayout sidebarLinks={SIDEBAR_LINKS}>
-      <PageHeader 
-        title="Dashboard Overview" 
-        description="Welcome to CampusFix AI Foundation Demo"
-        actions={
-          <div className="flex gap-sm">
-            <Button variant="outline">Export Report</Button>
-            <Button variant="primary" onClick={() => setShowToast(true)}>New Action</Button>
-          </div>
-        }
-      />
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
-        <StatCard title="Total Complaints" value="1,248" trend={5} icon="📋" />
-        <StatCard title="Resolved" value="982" trend={12} icon="✅" />
-        <StatCard title="SLA Breached" value="14" trend={-2} icon="⚠️" />
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 'var(--spacing-lg)' }}>
-        <div>
-          <h3 className="section-title" style={{ marginBottom: 'var(--spacing-md)' }}>Recent Complaints</h3>
-          <ComplaintCard complaint={DEMO_COMPLAINT} />
-        </div>
-        <div>
-          <h3 className="section-title" style={{ marginBottom: 'var(--spacing-md)' }}>Timeline Demo</h3>
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: 'var(--spacing-lg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-            <ComplaintTimeline events={DEMO_EVENTS} />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ marginTop: 'var(--spacing-xl)' }}>
-        <h3 className="section-title" style={{ marginBottom: 'var(--spacing-md)' }}>Badge System</h3>
-        <div className="flex gap-md" style={{ flexWrap: 'wrap', marginBottom: 'var(--spacing-md)' }}>
-          <StatusBadge status="RECEIVED" />
-          <StatusBadge status="ACKNOWLEDGED" />
-          <StatusBadge status="IN_PROGRESS" />
-          <StatusBadge status="RESOLVED" />
-          <StatusBadge status="SLA_BREACHED" />
-        </div>
-        <div className="flex gap-md" style={{ flexWrap: 'wrap' }}>
-          <PriorityBadge priority="LOW" />
-          <PriorityBadge priority="MEDIUM" />
-          <PriorityBadge priority="HIGH" />
-          <PriorityBadge priority="CRITICAL" />
-        </div>
-      </div>
-
-      {showToast && (
-        <ToastContainer>
-          <Toast message="Action completed successfully!" type="success" onClose={() => setShowToast(false)} />
-        </ToastContainer>
-      )}
-    </DashboardLayout>
-  )
+  return <DashboardLayout sidebarLinks={links} />;
 }
 
-export default App
+// Wrapper for DashboardLayout to intercept links correctly in react-router
+function AdminLayout({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, setUser } = useAuth();
+
+  const links = [
+    { label: 'Dashboard', href: '/', icon: '📊' },
+    { label: 'Analytics', href: '/analytics', icon: '📈' },
+    { label: 'Escalations', href: '/escalations', icon: '⬆️' },
+    { label: 'Sensitive', href: '/sensitive', icon: '🔒' },
+    { label: 'Audit Logs', href: '/audit', icon: '📝' },
+  ].map(link => ({
+    ...link,
+    active: location.pathname === link.href,
+  }));
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div style={{ padding: '8px 24px', background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ font: 'var(--font-caption)', color: 'var(--color-muted)' }}>Role Switcher (Demo):</div>
+        <Select 
+          value={user.role}
+          onChange={(e) => setUser({ ...user, role: e.target.value })}
+          options={[
+            { label: 'ADMIN', value: 'ADMIN' },
+            { label: 'SUPERVISOR', value: 'SUPERVISOR' },
+            { label: 'GRIEVANCE_OFFICER', value: 'GRIEVANCE_OFFICER' },
+            { label: 'STAFF', value: 'STAFF' },
+            { label: 'STUDENT', value: 'STUDENT' },
+          ]}
+        />
+      </div>
+      <DashboardLayout sidebarLinks={links.map(l => ({...l, href: undefined}))}>
+        {/* We need to hook into the sidebar links in DashboardLayout somehow, but since we can't easily modify the existing DashboardLayout to use Link without rewriting it, we'll modify Sidebar.jsx instead to support onClick or use window.location */}
+        {children}
+      </DashboardLayout>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AdminLayout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/escalations" element={<Escalations />} />
+            <Route path="/sensitive" element={<SensitiveComplaints />} />
+            <Route path="/audit" element={<AuditLogs />} />
+          </Routes>
+        </AdminLayout>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+export default App;
