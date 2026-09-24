@@ -3,7 +3,7 @@ import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import styles from './DashboardLayout.module.css';
 
-export function DashboardLayout({ children, sidebarLinks }) {
+export function DashboardLayout({ children, sidebarLinks, onNavigate }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -14,6 +14,7 @@ export function DashboardLayout({ children, sidebarLinks }) {
           isOpen={sidebarOpen} 
           onClose={() => setSidebarOpen(false)} 
           links={sidebarLinks} 
+          onNavigate={onNavigate}
         />
         <main className={styles.main}>
           {children}

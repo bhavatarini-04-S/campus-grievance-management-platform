@@ -8,9 +8,11 @@ import { ComplaintTimeline } from './components/CampusFix/ComplaintTimeline'
 import { StatusBadge } from './components/CampusFix/StatusBadge'
 import { PriorityBadge } from './components/CampusFix/PriorityBadge'
 import { Toast, ToastContainer } from './components/Base/Toast'
+import AIDemoPage from './pages/AIDemoPage'
 
 const SIDEBAR_LINKS = [
   { label: 'Dashboard', href: '#', icon: '📊', active: true },
+  { label: 'AI Demo', href: '#ai-demo', icon: '🤖' },
   { label: 'Complaints', href: '#', icon: '📝' },
   { label: 'Settings', href: '#', icon: '⚙️' }
 ];
@@ -34,16 +36,34 @@ const DEMO_EVENTS = [
 
 function App() {
   const [showToast, setShowToast] = useState(false);
+  const [currentPage, setCurrentPage] = useState('dashboard');
+
+  const handleNavigation = (href) => {
+    if (href === '#ai-demo') {
+      setCurrentPage('ai-demo');
+    } else {
+      setCurrentPage('dashboard');
+    }
+  };
+
+  const updatedSidebarLinks = SIDEBAR_LINKS.map(link => ({
+    ...link,
+    active: (link.href === '#ai-demo' && currentPage === 'ai-demo') || 
+           (link.href === '#' && currentPage === 'dashboard')
+  }));
+
+  if (currentPage === 'ai-demo') {
+    return <AIDemoPage onNavigate={handleNavigation} />;
+  }
 
   return (
-    <DashboardLayout sidebarLinks={SIDEBAR_LINKS}>
+    <DashboardLayout sidebarLinks={updatedSidebarLinks} onNavigate={handleNavigation}>
       <PageHeader 
         title="Dashboard Overview" 
         description="Welcome to CampusFix AI Foundation Demo"
         actions={
           <div className="flex gap-sm">
-            <Button variant="outline">Export Report</Button>
-            <Button variant="primary" onClick={() => setShowToast(true)}>New Action</Button>
+            <Button variant="outline" onClick={() => setShowToast(true)}>Export Report</Button>
           </div>
         }
       />
@@ -57,7 +77,10 @@ function App() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 'var(--spacing-lg)' }}>
         <div>
           <h3 className="section-title" style={{ marginBottom: 'var(--spacing-md)' }}>Recent Complaints</h3>
-          <ComplaintCard complaint={DEMO_COMPLAINT} />
+          <ComplaintCard 
+            complaint={DEMO_COMPLAINT} 
+            onActionClick={() => setShowToast(true)}
+          />
         </div>
         <div>
           <h3 className="section-title" style={{ marginBottom: 'var(--spacing-md)' }}>Timeline Demo</h3>
@@ -90,7 +113,7 @@ function App() {
         </ToastContainer>
       )}
     </DashboardLayout>
-  )
+  );
 }
 
 export default App
